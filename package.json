@@ -1,36 +1,39 @@
 {
-  "name": "three-seed",
-  "version": "0.3.1",
-  "description": "Three.js starter project boilerplate bundled with webpack",
-  "keywords": [
-    "webgl",
-    "boilerplate",
-    "three.js",
-    "es6",
-    "webpack"
-  ],
-  "scripts": {
-    "start": "webpack-dev-server --mode development",
-    "prebuild": "rimraf ./build && mkdir ./build",
-    "build": "webpack --mode production"
-  },
-  "dependencies": {
-    "three": "^0.91.0",
-    "three-obj-loader": "^1.1.3",
-    "webpack-cli": "^2.0.12"
-  },
-  "devDependencies": {
-    "babel-core": "^6.23.1",
-    "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.6.1",
-    "file-loader": "^1.1.6",
-    "html-webpack-plugin": "^3.2.0",
-    "raw-loader": "^0.5.1",
-    "rimraf": "^2.6.2",
-    "webpack": "^4.2.0",
-    "webpack-dev-server": "^3.1.1"
-  },
-  "engines": {
-    "node": ">=8.0.0"
-  }
+    "name": "sketch",
+    "version": "0.0.1",
+    "description": "Three.js sketch materials",
+    "keywords": [
+        "webgl",
+        "boilerplate",
+        "three.js",
+        "es6",
+        "webpack"
+    ],
+    "scripts": {
+        "build": "node ./tooling/clean.js && cross-env NODE_ENV=production webpack -p",
+        "build-dev": "node ./tooling/clean.js  && cross-env NODE_ENV=development webpack --debug --output-pathinfo",
+        "watch": "node ./tooling/clean.js && cross-env NODE_ENV=development webpack --debug --output-pathinfo -w",
+        "test": "cross-env NODE_ENV=development BABEL_ENV=test mocha --require babel-register -R spec test/"
+    },
+    "dependencies": {
+        "three": "^0.95.0",
+        "three-obj-loader": "^1.1.3"
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.3",
+        "babel-loader": "^7.1.5",
+        "babel-preset-env": "^1.7.0",
+        "cross-env": "^5.2.0",
+        "css-loader": "^1.0.0",
+        "file-loader": "^1.1.11",
+        "html-webpack-plugin": "^3.2.0",
+        "mini-css-extract-plugin": "^0.4.1",
+        "raw-loader": "^0.5.1",
+        "shelljs": "^0.8.2",
+        "webpack": "^4.16.5",
+        "webpack-cli": "^3.1.0"
+    },
+    "engines": {
+        "node": ">=8.0.0"
+    }
 }

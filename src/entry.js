@@ -7,6 +7,8 @@
  * 
  */
 
+import STYLES from "./style.css"
+
 import { WebGLRenderer, PerspectiveCamera, Scene, Vector3 } from 'three';
 import SeedScene from './objects/Scene.js';
 
