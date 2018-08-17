@@ -8,7 +8,7 @@ const PRODUCTION = (process.env.NODE_ENV === "production");
 
 module.exports = {
     mode: process.env.NODE_ENV,
-    entry: ["./src/entry.js"],
+    entry: ["./src/index.js"],
     output: {
         path: path.join(__dirname, buildPath),
         filename: "[name].[hash].js"
@@ -53,7 +53,8 @@ module.exports = {
                 ".shader",
                 ".txt",
                 ".json"
-        ]})
+            ]
+        })
     ],
 
     module: {
@@ -66,10 +67,7 @@ module.exports = {
                 test: /\.(jpe?g|png|gif|svg|tga|gltf|babylon|mtl|pcb|pcd|prwm|obj|mat|mp3|ogg)$/i,
                 use: "file-loader",
                 exclude: path.resolve(__dirname, "./node_modules/")
-            }, {
-                test: /\.(vert|frag|glsl|shader|txt)$/i,
-                use: "raw-loader",
-                exclude: path.resolve(__dirname, "./node_modules/")
+
             }, {
                 type: "javascript/auto",
                 test: /\.(json)/,
@@ -85,12 +83,11 @@ module.exports = {
             {
                 test: /\.css$/,
                 exclude: /node_modules/,
-                use: [ MiniCssExtractPlugin.loader, "css-loader" ]
+                use: [MiniCssExtractPlugin.loader, "css-loader"]
             }
 
         ]
     },
-
 
     optimization: {
         splitChunks: {
