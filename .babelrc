@@ -1,4 +1,11 @@
 {
     "presets": ["env"],
-    "plugins": ["glslify"]
+    "plugins": ["glslify"],
+    "env": {
+        "test": {
+            "plugins": [
+                "babel-plugin-espower"
+            ]
+        }
+    }
 }
