@@ -62,7 +62,7 @@ bool isOnLine(float baryPos, float b, float shadow, float lineDistance, float ra
 
         float count = floor(baryPos * invLen);
 
-        float random = noise((vWorldPosition + count + vec3(0, randomOffset,0) ) * 2.5 ) * 0.14 * scale * cameraDistance;
+        float random = noise((vWorldPosition + count + vec3(0, randomOffset,0) ) * 1.2 ) * 0.12 * scale * cameraDistance;
 
         float pos = fract(((baryPos + random) - count * len) * invLen);
 
