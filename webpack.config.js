@@ -1,7 +1,7 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WatchCleanPlugin = require("./src/util/watch-clean");
-const buildPath = "./dist/";
+const buildPath = "./docs/";
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const PRODUCTION = (process.env.NODE_ENV === "production");
@@ -30,30 +30,7 @@ module.exports = {
         new WatchCleanPlugin({
             suffixes: [
                 ".js", ".js.map",
-                ".css", ".css.map",
-                ".jpg",
-                ".jpeg",
-                ".png",
-                ".gif",
-                ".svg",
-                ".tga",
-                ".gltf",
-                ".babylon",
-                ".mtl",
-                ".mtl",
-                ".pcb",
-                ".pcd",
-                ".prwm",
-                ".obj",
-                ".mat",
-                ".mp3",
-                ".ogg",
-                ".vert",
-                ".frag",
-                ".glsl",
-                ".shader",
-                ".txt",
-                ".json"
+                ".css", ".css.map"
             ]
         })
     ],

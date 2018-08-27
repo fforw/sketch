@@ -35,6 +35,8 @@ class ControlUI extends React.Component {
 
         return (
             <div id="control-ui">
+                <a href="https://github.com/fforw/sketch">github</a>
+                <br/>
                 <label>
                     <input
                         type="checkbox"

@@ -13,3 +13,13 @@ body
     background: #000;
     color: #ccc;
 }
+
+#root a
+{
+    color: #ccf;
+}
+
+#root a:visited
+{
+    color: #fcf;
+}

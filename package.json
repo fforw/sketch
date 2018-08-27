@@ -10,9 +10,9 @@
         "webpack"
     ],
     "scripts": {
-        "build": "node ./tooling/clean.js && cross-env NODE_ENV=production webpack -p",
-        "build-dev": "node ./tooling/clean.js  && cross-env NODE_ENV=development webpack --debug --output-pathinfo",
-        "watch": "node ./tooling/clean.js && cross-env NODE_ENV=development webpack --debug --output-pathinfo -w",
+        "build": "cross-env NODE_ENV=production webpack -p",
+        "build-dev": "cross-env NODE_ENV=development webpack --debug --output-pathinfo",
+        "watch": "cross-env NODE_ENV=development webpack --debug --output-pathinfo -w",
         "test": "cross-env NODE_ENV=development BABEL_ENV=test mocha --require babel-register -R spec test/"
     },
     "dependencies": {
