@@ -306,7 +306,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(new Color(0xf0f0f0));
 
 
-const MIN_AZIMUT = TAU / 72;
+const MIN_AZIMUT = TAU / 360;
 
 let angle = TAU/4;
 let dx = 1;
@@ -353,18 +353,18 @@ function onAnimationFrame(timeStamp)
                 {
                     angle += dx * delta * 0.0001;
 
-                    // if (angle < MIN_AZIMUT)
-                    // {
-                    //     angle = MIN_AZIMUT;
-                    //     dx = 1;
-                    //
-                    //
-                    // }
-                    // else if (angle > Math.PI - MIN_AZIMUT)
-                    // {
-                    //     angle = Math.PI - MIN_AZIMUT;
-                    //     dx = -1;
-                    // }
+                    if (angle < MIN_AZIMUT)
+                    {
+                        angle = MIN_AZIMUT;
+                        dx = 1;
+
+
+                    }
+                    else if (angle > Math.PI - MIN_AZIMUT)
+                    {
+                        angle = Math.PI - MIN_AZIMUT;
+                        dx = -1;
+                    }
 
 
                     const time = timeStamp - first;
