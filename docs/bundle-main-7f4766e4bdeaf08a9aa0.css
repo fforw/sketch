@@ -1,0 +1,33 @@
+body
+{
+    margin:0;
+    padding: 0;
+    overflow: hidden;
+}
+
+
+#root
+{
+    position: absolute;
+    z-index: 100;
+    background: #000;
+    color: #ccc;
+}
+
+#root a
+{
+    color: #ccf;
+}
+
+#root a:visited
+{
+    color: #fcf;
+}
+
+#control-ui
+{
+    font-size: 12px;
+}
+
+
+/*# sourceMappingURL=bundle-main-7f4766e4bdeaf08a9aa0.css.map*/
