@@ -1,6 +1,10 @@
 {
-    "presets": ["env"],
-    "plugins": ["glslify"],
+    "presets": [ "env", "react"],
+    "plugins": [
+        "transform-class-properties",
+        "transform-object-rest-spread",
+        "glslify"
+    ],
     "env": {
         "test": {
             "plugins": [

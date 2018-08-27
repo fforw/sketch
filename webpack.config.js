@@ -30,6 +30,7 @@ module.exports = {
         new WatchCleanPlugin({
             suffixes: [
                 ".js", ".js.map",
+                ".css", ".css.map",
                 ".jpg",
                 ".jpeg",
                 ".png",

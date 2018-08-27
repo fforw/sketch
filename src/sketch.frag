@@ -7,7 +7,6 @@
 #include <shadowmask_pars_fragment>
 
 uniform vec3 color;
-uniform float opacity;
 uniform float time;
 uniform float height;
 
@@ -15,11 +14,13 @@ varying vec3 vNormal;
 varying vec3 vWorldPosition;
 varying vec3 vLightDirection;
 varying vec3 vPrimary;
+varying float cameraDistance;
 
 uniform float shadow;
 uniform float scale;
+uniform bool flipEveryOther;
 
-varying vec3 vBarycentric;
+varying vec4 vBarycentric;
 
 float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
 vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
@@ -48,101 +49,84 @@ float noise(vec3 p){
     return o4.y * d.y + o4.x * (1.0 - d.y);
 }
 
-vec4 isOnLine(float pos, float num, float primaryPixelLen, float pixelHeight)
+bool isOnLine(float baryPos, float b, float shadow, float lineDistance, float randomOffset, float lineWidth)
 {
-    float inv = 1.0/num;
-
-    float lenofPart = primaryPixelLen * inv;
-
-    if (lenofPart < pixelHeight)
+    if (b < shadow)
     {
-        return vec4(0,1,1,1);
+        float len = lineDistance * scale * cameraDistance;
+
+        // because of the fractional below, we calculate in 1/len units (so random values "push" the line correctly into the next slice)
+        float invLen = 1.0 / len;
+
+        float pixelHeight = 1.0 / height * invLen;
+
+        float count = floor(baryPos * invLen);
+
+        float random = noise((vWorldPosition + count + vec3(0, randomOffset,0) ) * 2.5 ) * 0.14 * scale * cameraDistance;
+
+        float pos = fract(((baryPos + random) - count * len) * invLen);
+
+        return ( pos < pixelHeight * lineWidth * scale * cameraDistance);
     }
-
-    float posInPixel = fract(pos * inv) * lenofPart;
-
-    return (posInPixel < pixelHeight * 8.0 ) ? vec4(0,0,0,1) : vec4(1,1,1,1);
+    return false;
 }
+
 
 void main(void) {
 
-        float d =  getShadowMask();
-        float c = (1.0 + dot( vNormal, vLightDirection)) / 2.0;
-        float b = max(0.0,  c * d);
+    float d =  getShadowMask();
+    float c = (1.0 + dot( vNormal, vLightDirection)) / 2.0;
+    float b = max(0.0,  c * d);
 
-        //float pixelHeight = 1.0/height;
+    float lineScale = height / 800.0;
 
-        float len = 0.02 * scale;
+    float timeFactor = time * 0.0004;
 
-        float count = floor(vBarycentric.y / len);
+    bool flip = flipEveryOther && vBarycentric.w == 0.0;
 
-        float random = noise((vWorldPosition + count) * 2.2) * 0.004 * scale;
+    float bx = flip ? vBarycentric.x : 1.0 - vBarycentric.x;
+    float by = vBarycentric.y;
+    float bz = vBarycentric.z;
 
-        float pos = fract(((vBarycentric.y + random) - count * len) / len);
+    if (isOnLine(     bx, b, shadow      , 0.4, timeFactor + 0.0, 40.0 * lineScale))
+    {
+        gl_FragColor = vec4(0,0,0,1);
+    }
+    else if (isOnLine(by, b, shadow * 0.8, 0.3, timeFactor + 11.0, 40.0* lineScale))
+    {
+        gl_FragColor = vec4(0,0,0,1);
+    }
+    else if (isOnLine(by, b, shadow * 0.5, 0.25, timeFactor + 2.0, 50.0* lineScale))
+    {
+        gl_FragColor = vec4(0,0,0,1);
+    }
+    else if (isOnLine(bz, b, shadow * 0.4, 0.2, timeFactor - 3.0, 60.0 * lineScale))
+    {
+        gl_FragColor = vec4(0,0,0,1);
+    }
+    else if (isOnLine(bx, b, shadow * 0.1, 0.15, timeFactor + 14.0, 60.0 * lineScale))
+    {
+        gl_FragColor = vec4(0,0,0,1);
+    }
+    else
+    {
+        float factor = 0.0;
 
-        float pos0 = fract(((vBarycentric.z + random) - count * len) / len);
-
-        float shadowHalf = shadow/3.0;
-
-        if (pos0 < 0.39)
+        if (isOnLine(bx, 0.0, 1.0, 0.15, timeFactor + 141.0, 60.0 * lineScale))
         {
-            gl_FragColor = vec4(color.x,color.y,color.z,1);
+            factor = factor + 0.33;
         }
-        else
+        if (isOnLine(by, 0.0, 1.0, 0.14, timeFactor + 214.0, 60.0 * lineScale))
         {
-            gl_FragColor = vec4(1,1,1,1);
+            factor = factor + 0.33;
         }
-
-        if (b < shadow)
+        if (isOnLine(bz, 0.0, 1.0, 0.16, timeFactor + 214.0, 60.0 * lineScale))
         {
-            float v = min(b / shadow, 0.6);
-
-            if ( pos > v && pos < 0.8)
-            {
-                gl_FragColor = vec4(0,0,0,1);
-            }
-
-            if (b < shadowHalf)
-            {
-                float len2 = 0.03 * scale;
-                float count2 = floor(vBarycentric.x / len);
-
-                float random2 = noise((vWorldPosition + count2)* 2.0 ) * 0.004 * scale;
-
-                float pos2 = fract(((vBarycentric.x + random2) - count2 * len2) / len2);
-
-                float v2 = b / shadow;
-
-                if ( pos2 > v2 && pos2 < 0.97)
-                {
-                    gl_FragColor = vec4(0,0,0,1);
-                }
-            }
+            factor = factor + 0.33;
         }
-//
-//        vec3 randomPos = vWorldPosition * 40.0;
-//        vec3 randomPos2 = vLightDirection * 30.0;
-//
-//        float n = (noise(randomPos) + noise(randomPos2))/2.0;
-//
-//        float dist = (1.0 - gl_FragCoord.y ) * height  / vPrimary.y + n / 5.0;
-//        float pos = fract(dist);
-//
-//        float primaryLen = length(vPrimary);
-//
-//        float pixelHeight = 1.0/height;
-//
-//
-//        if (b < 0.8)
-//        {
-//            gl_FragColor = isOnLine(pos, 4.0, primaryLen, pixelHeight);
-//        }
-//        else
-//        {
-//            gl_FragColor = vec4(1, 0, 1, 1);
-//        }
-//
-//    }
-//
 
+        vec3 col = mix( vec3(1,1,1), color, factor);
+
+        gl_FragColor = vec4(col.x,col.y,col.z, 1);
+    }
 }

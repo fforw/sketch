@@ -12,8 +12,8 @@ function sortByDeltaAscending(a,b)
     return a.delta - b.delta;
 }
 
-const DOWN = new Vector3(0,-1,0);
-const LEFT = new Vector3(-1,0,0);
+export const DOWN = new Vector3(0,-1,0);
+export const LEFT = new Vector3(-1,0,0);
 
 const EDGE_INDEXES = [
     [0,3,6],
@@ -25,10 +25,9 @@ const vPoint0 = new Vector3(0,0,0);
 const vPoint1 = new Vector3(0,0,0);
 const vTmp = new Vector3(0,0,0);
 
-export default function (geometry, vPrimary = DOWN, vSecondary = LEFT)
+export default function (geometry, flipEveryOther = true, vPrimary = DOWN, vSecondary = LEFT)
 {
     const positions = geometry.attributes.position.array;
-    const normals = geometry.attributes.normal.array;
 
     // the primary plane lies in the direction of the primary vector, safely outside of the scene
     const primaryPlane = new Plane();
@@ -40,9 +39,12 @@ export default function (geometry, vPrimary = DOWN, vSecondary = LEFT)
 
     // Build new attribute storing barycentric coordinates
     // for each vertex
-    const barycentric = new BufferAttribute(new Float32Array(positions.length), 3);
+    const barycentric = new BufferAttribute(new Float32Array(positions.length * 4 / 3), 4);
 
-    for (let i = 0; i < positions.length; i += 9)
+    const out = barycentric.array;
+
+    let flip = false;
+    for (let i = 0, j = 0; i < positions.length; i += 9, j += 12)
     {
 
         // an edge is all points in an triangle where one of the barycentric components is 1
@@ -50,9 +52,9 @@ export default function (geometry, vPrimary = DOWN, vSecondary = LEFT)
 
         // if (i === 99)
         // {
-            for (let j=0; j < 3; j++)
+            for (let k=0; k < 3; k++)
             {
-                const [idx0, idx1, idx2] = EDGE_INDEXES[j];
+                const [idx0, idx1, idx2] = EDGE_INDEXES[k];
 
                 vPoint0.x = positions[ i + idx0    ];
                 vPoint0.y = positions[ i + idx0 + 1];
@@ -62,7 +64,7 @@ export default function (geometry, vPrimary = DOWN, vSecondary = LEFT)
                 vPoint1.y = positions[ i + idx1 + 1];
                 vPoint1.z = positions[ i + idx1 + 2];
 
-                edges[j] = {
+                edges[k] = {
                     other: idx2,
                     delta: Math.abs(primaryPlane.distanceToPoint(vPoint0) - primaryPlane.distanceToPoint(vPoint1)),
                     start: vPoint0.clone(),
@@ -161,22 +163,29 @@ export default function (geometry, vPrimary = DOWN, vSecondary = LEFT)
         // }
 
 
-        console.log({primaryEdge, secondaryEdge, tertiaryEdge});
+        //console.log({primaryEdge, secondaryEdge, tertiaryEdge});
 
-        barycentric.array[ i    ] = primaryEdge === 0 ? 1: 0;
-        barycentric.array[ i + 1] = primaryEdge === 3 ? 1: 0;
-        barycentric.array[ i + 2] = primaryEdge === 6 ? 1: 0;
+        out[ j     ] = primaryEdge === 0 ? 1: 0;
+        out[ j +  1] = primaryEdge === 3 ? 1: 0;
+        out[ j +  2] = primaryEdge === 6 ? 1: 0;
+        out[ j +  3] = flip ? 1 : 0;
 
-        barycentric.array[ i + 3] = secondaryEdge === 0 ? 1: 0;
-        barycentric.array[ i + 4] = secondaryEdge === 3 ? 1: 0;
-        barycentric.array[ i + 5] = secondaryEdge === 6 ? 1: 0;
+        out[ j +  4] = secondaryEdge === 0 ? 1: 0;
+        out[ j +  5] = secondaryEdge === 3 ? 1: 0;
+        out[ j +  6] = secondaryEdge === 6 ? 1: 0;
+        out[ j +  7] = flip ? 1 : 0;
 
-        barycentric.array[ i + 6] = tertiaryEdge === 0 ? 1: 0;
-        barycentric.array[ i + 7] = tertiaryEdge === 3 ? 1: 0;
-        barycentric.array[ i + 8] = tertiaryEdge === 6 ? 1: 0;
+        out[ j +  8] = tertiaryEdge === 0 ? 1: 0;
+        out[ j +  9] = tertiaryEdge === 3 ? 1: 0;
+        out[ j + 10] = tertiaryEdge === 6 ? 1: 0;
+        out[ j + 11] = flip ? 1 : 0;
+
+        if (flipEveryOther)
+        {
+            flip = !flip;
+        }
     }
-
-    console.log("BARYCENTRIC", barycentric);
+    //console.log("BARYCENTRIC", barycentric);
 
     return barycentric;
 }
