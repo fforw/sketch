@@ -10,6 +10,7 @@ import {
     DirectionalLight,
     IcosahedronGeometry,
     Mesh,
+    BasicShadowMap,
     PCFShadowMap,
     PCFSoftShadowMap,
     PerspectiveCamera,
@@ -20,20 +21,23 @@ import {
     Vector3,
     WebGLRenderer,
     BufferGeometry,
-    MeshPhongMaterial
+    MeshPhongMaterial,
+    Quaternion
 } from "three";
 
 import glslify from "glslify";
 import barycentric from "./util/barycentric";
 import ControlUI, { UI_DEFAULTS } from "./components/ControlUI";
 import refPoint from "./util/refPoint";
+import GLTFLoader from "three-gltf-loader"
+import createSketchAtrritbutes from "./util/createSketchAtrritbutes";
+import findMedianFaceSize from "./util/findMedianFaceSize";
 
 const OrbitControls = require("three-orbit-controls")(require("three"));
 
 
 const fragmentShader = glslify("./sketch.frag");
 const vertexShader = glslify("./sketch.vert");
-
 
 
 let controls;
@@ -145,33 +149,36 @@ function createMaterial(opts)
     return material;
 }
 
-function withBarycentricCoordinates(geometry, flipEveryOther = true)
+function withBarycentricCoordinates(buffer, flipEveryOther = true)
 {
-    let buffer = new BufferGeometry();
-    buffer.fromGeometry(geometry);
+    // let buffer = new BufferGeometry();
+    // buffer.fromGeometry(geometry);
 
     if (buffer.getIndex() !== null)
     {
         buffer = buffer.toNonIndexed();
     }
 
-    buffer.addAttribute("barycentric", barycentric(buffer, flipEveryOther));
-    buffer.addAttribute("refPoint", refPoint(buffer, flipEveryOther));
+    createSketchAtrritbutes(buffer);
 
     return buffer;
 }
 
 function createBox(width, height, depth, resolution = 1)
 {
+    const buffer = new BufferGeometry();
+    buffer.fromGeometry(        new CubeGeometry(
+        width,
+        height,
+        depth,
+        resolution,
+        resolution,
+        resolution
+    ));
+
+
     return withBarycentricCoordinates(
-        new CubeGeometry(
-            width,
-            height,
-            depth,
-            resolution,
-            resolution,
-            resolution
-        ),
+        buffer,
         true
     );
 }
@@ -188,13 +195,15 @@ const cube2Mat = createMaterial({
 });
 const groundMat = createMaterial({
     color: 0xbbbbbf,
-    scale: 0.08
+    scale: 0.01
 });
 const icoMat = createMaterial({
     color: 0x888888,
     scale: 0.5,
     flipEveryOther: false
 });
+
+let sizeMin = Infinity, sizeMax = -Infinity;
 
 function createScene()
 {
@@ -225,65 +234,128 @@ function createScene()
 
     scene.add(light);
 
-    const icoGeometry = withBarycentricCoordinates(new IcosahedronGeometry(2, 2), false);
-    const icoMesh = new Mesh( icoGeometry, icoMat );
-    icoMesh.position.x = 2;
-    icoMesh.position.z = -5;
-    icoMesh.position.y = 1.5;
-    icoMesh.castShadow = true;
-    icoMesh.receiveShadow = true;
+    // const icoGeometry = withBarycentricCoordinates(new IcosahedronGeometry(2, 2), false);
+    // const icoMesh = new Mesh( icoGeometry, icoMat );
+    // icoMesh.position.x = 2;
+    // icoMesh.position.z = -5;
+    // icoMesh.position.y = 1.5;
+    // icoMesh.castShadow = true;
+    // icoMesh.receiveShadow = true;
+    //
+    // scene.add(icoMesh);
+    //
+    // const cubeGeometry = createBox(3, 4, 3);
+    // const cubeMesh = new Mesh(cubeGeometry, cubeMat);
+    // cubeMesh.position.x = 1;
+    // cubeMesh.position.y = 2;
+    // cubeMesh.position.z = 1;
+    // cubeMesh.castShadow = true;
+    // cubeMesh.receiveShadow = true;
+    //
+    // scene.add(cubeMesh);
+    //
+    // const cube3Mesh = new Mesh(cubeGeometry, cubeMat);
+    // cube3Mesh.position.x = 1;
+    // cube3Mesh.position.y = 6;
+    // cube3Mesh.position.z = 1;
+    // cube3Mesh.rotation.y = TAU/8;
+    // cube3Mesh.castShadow = true;
+    // cube3Mesh.receiveShadow = true;
+    //
+    // scene.add(cube3Mesh);
+    //
+    // const cube2Geometry = createBox(5, 3, 3);
+    //
+    // const cube2Mesh = new Mesh(cube2Geometry, cube2Mat);
+    // cube2Mesh.position.x = -3.5;
+    // cube2Mesh.position.y = 1.5;
+    // cube2Mesh.position.z = -2;
+    // cube2Mesh.castShadow = true;
+    // cube2Mesh.receiveShadow = true;
+    //
+    // scene.add(cube2Mesh);
+    //
+    //
+    // const cube4Mesh = new Mesh(cube2Geometry, cube2Mat);
+    // cube4Mesh.position.x = -3.5;
+    // cube4Mesh.position.y = 1.5;
+    // cube4Mesh.position.z = 5;
+    // cube4Mesh.rotation.y = TAU/32;
+    // cube4Mesh.castShadow = true;
+    // cube4Mesh.receiveShadow = true;
+    //
+    // scene.add(cube4Mesh);
+    //
+        const ground = createBox(40, 1, 40, 8);
+        const groundMesh = new Mesh(ground, groundMat);
+        groundMesh.position.y = -0.5;
+        groundMesh.castShadow = true;
+        groundMesh.receiveShadow = true;
 
-    scene.add(icoMesh);
-
-    const cubeGeometry = createBox(3, 4, 3);
-    const cubeMesh = new Mesh(cubeGeometry, cubeMat);
-    cubeMesh.position.x = 1;
-    cubeMesh.position.y = 2;
-    cubeMesh.position.z = 1;
-    cubeMesh.castShadow = true;
-    cubeMesh.receiveShadow = true;
-
-    scene.add(cubeMesh);
-
-    const cube3Mesh = new Mesh(cubeGeometry, cubeMat);
-    cube3Mesh.position.x = 1;
-    cube3Mesh.position.y = 6;
-    cube3Mesh.position.z = 1;
-    cube3Mesh.rotation.y = TAU/8;
-    cube3Mesh.castShadow = true;
-    cube3Mesh.receiveShadow = true;
-
-    scene.add(cube3Mesh);
-
-    const cube2Geometry = createBox(5, 3, 3);
-
-    const cube2Mesh = new Mesh(cube2Geometry, cube2Mat);
-    cube2Mesh.position.x = -3.5;
-    cube2Mesh.position.y = 1.5;
-    cube2Mesh.position.z = -2;
-    cube2Mesh.castShadow = true;
-    cube2Mesh.receiveShadow = true;
-
-    scene.add(cube2Mesh);
+        scene.add(groundMesh);
 
 
-    const cube4Mesh = new Mesh(cube2Geometry, cube2Mat);
-    cube4Mesh.position.x = -3.5;
-    cube4Mesh.position.y = 1.5;
-    cube4Mesh.position.z = 5;
-    cube4Mesh.rotation.y = TAU/32;
-    cube4Mesh.castShadow = true;
-    cube4Mesh.receiveShadow = true;
+    var loader = new GLTFLoader();
+    loader.load( "park-gltf.glb", function ( gltf ) {
 
-    scene.add(cube4Mesh);
 
-    const ground = createBox(40, 1, 40, 8);
-    const groundMesh = new Mesh(ground, groundMat);
-    groundMesh.position.y = -0.5;
-    groundMesh.castShadow = true;
-    groundMesh.receiveShadow = true;
+        const { scene: gltFScene } = gltf;
 
-    scene.add(groundMesh);
+        gltFScene.traverse( function ( child ) {
+
+            try
+            {
+                if ( child.isMesh ) {
+
+
+                    const position = new Vector3(0,0,0);
+                    const quaternion = new Quaternion();
+                    const scale = new Vector3(0,0,0);
+
+
+                    child.updateMatrixWorld(true);
+                    child.matrixWorld.decompose(position, quaternion, scale);
+
+
+
+                    const newGeom = withBarycentricCoordinates(child.geometry, false);
+
+                    const median = findMedianFaceSize(newGeom);
+
+                    sizeMin = Math.min(median, sizeMin);
+                    sizeMax = Math.max(median, sizeMax);
+
+                    console.log("face size", median, "min = ", sizeMin, "max=", sizeMax);
+
+                    const mesh = new Mesh(
+                        newGeom,
+                        createMaterial({
+                            color: 0xbbbbbf,
+                            scale: median > 1 ? median * 0.004 : Math.sqrt(median) * 0.7
+                        })
+
+                    );
+                    mesh.position.copy(position);
+                    mesh.quaternion.copy(quaternion);
+                    mesh.scale.copy(scale);
+
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.matrixAutoUpdate = true;
+
+                    scene.add( mesh);
+                }
+            }
+            catch(e)
+            {
+                console.error("Error traversing", e);
+            }
+        } );
+
+
+        //scene.add( gltFScene);
+
+    } );
 
 // camera
     camera.position.set(-3, 4, -10);
@@ -291,6 +363,7 @@ function createScene()
 
     // const shadowHelper = new CameraHelper(light.shadow.camera);
     // scene.add(shadowHelper);
+
 
 }
 
@@ -301,9 +374,10 @@ const renderer = new WebGLRenderer({
     });
 
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = PCFSoftShadowMap; // default THREE.PCFShadowMap
+renderer.shadowMap.type = BasicShadowMap; // default THREE.PCFShadowMap
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(new Color(0xf0f0f0));
+
 
 
 const MIN_AZIMUT = TAU / 360;
@@ -451,5 +525,4 @@ render(
         raf(onAnimationFrame);
     }
 );
-
 

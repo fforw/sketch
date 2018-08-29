@@ -8,7 +8,10 @@ const PRODUCTION = (process.env.NODE_ENV === "production");
 
 module.exports = {
     mode: process.env.NODE_ENV,
-    entry: ["./src/index.js"],
+    entry: {
+        main: "./src/index.js",
+        golden: "./src/golden.js"
+    },
     output: {
         path: path.join(__dirname, buildPath),
         filename: "[name].[hash].js"
@@ -19,7 +22,15 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             inject: "body",
-            template: "src/template.html"
+            chunks: ["main", "vendors"],
+            template: "src/template.html",
+            filename: "index.html"
+        }),
+        new HtmlWebpackPlugin({
+            inject: "body",
+            chunks: ["golden", "vendors"],
+            template: "src/template.html",
+            filename: "golden.html"
         }),
 
         new MiniCssExtractPlugin({

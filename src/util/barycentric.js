@@ -25,9 +25,12 @@ const vPoint0 = new Vector3(0,0,0);
 const vPoint1 = new Vector3(0,0,0);
 const vTmp = new Vector3(0,0,0);
 
+const edges = [null,null,null];
+
 export default function (geometry, flipEveryOther = true, vPrimary = DOWN, vSecondary = LEFT)
 {
     const positions = geometry.attributes.position.array;
+    const normals = geometry.attributes.normal.array;
 
     // the primary plane lies in the direction of the primary vector, safely outside of the scene
     const primaryPlane = new Plane();
@@ -47,8 +50,6 @@ export default function (geometry, flipEveryOther = true, vPrimary = DOWN, vSeco
     for (let i = 0, j = 0; i < positions.length; i += 9, j += 12)
     {
 
-        // an edge is all points in an triangle where one of the barycentric components is 1
-        const edges = [null,null,null];
 
         // if (i === 99)
         // {

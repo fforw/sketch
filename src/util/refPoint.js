@@ -40,51 +40,10 @@ export default function (geometry, alternatingQuads = true) {
     // for each vertex
     const refPoint = new BufferAttribute(new Float32Array(positions.length), 3);
 
-    const out = refPoint.array;
+    const rpArray = refPoint.array;
 
     for (let i = 0; i < positions.length; i += 9)
     {
-        let center;
-        if (alternatingQuads)
-        {
-            const centerA = getCenter(positions, i).clone();
-            const centerB = getCenter(positions, i + 9);
-
-            center = centerA.add(centerB).multiplyScalar(0.5);
-        }
-        else
-        {
-            center = getCenter(positions, i);
-        }
-
-        out[i    ] = center.x;
-        out[i + 1] = center.y;
-        out[i + 2] = center.z;
-
-        out[i + 3] = center.x;
-        out[i + 4] = center.y;
-        out[i + 5] = center.z;
-
-        out[i + 6] = center.x;
-        out[i + 7] = center.y;
-        out[i + 8] = center.z;
-
-
-        if (alternatingQuads)
-        {
-            i = i + 9;
-            out[i    ] = center.x;
-            out[i + 1] = center.y;
-            out[i + 2] = center.z;
-
-            out[i + 3] = center.x;
-            out[i + 4] = center.y;
-            out[i + 5] = center.z;
-
-            out[i + 6] = center.x;
-            out[i + 7] = center.y;
-            out[i + 8] = center.z;
-        }
     }
     //console.log("BARYCENTRIC", refPoint);
 

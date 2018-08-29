@@ -147,7 +147,7 @@
 /******/
 /******/
 /******/ 	// add entry module to deferred list
-/******/ 	deferredModules.push([0,"vendors"]);
+/******/ 	deferredModules.push(["./src/index.js","vendors"]);
 /******/ 	// run deferred modules when ready
 /******/ 	return checkDeferredModules();
 /******/ })
@@ -323,6 +323,18 @@ var _refPoint = __webpack_require__(/*! ./util/refPoint */ "./src/util/refPoint.
 
 var _refPoint2 = _interopRequireDefault(_refPoint);
 
+var _threeGltfLoader = __webpack_require__(/*! three-gltf-loader */ "./node_modules/three-gltf-loader/index.js");
+
+var _threeGltfLoader2 = _interopRequireDefault(_threeGltfLoader);
+
+var _createSketchAtrritbutes = __webpack_require__(/*! ./util/createSketchAtrritbutes */ "./src/util/createSketchAtrritbutes.js");
+
+var _createSketchAtrritbutes2 = _interopRequireDefault(_createSketchAtrritbutes);
+
+var _findMedianFaceSize = __webpack_require__(/*! ./util/findMedianFaceSize */ "./src/util/findMedianFaceSize.js");
+
+var _findMedianFaceSize2 = _interopRequireDefault(_findMedianFaceSize);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var OrbitControls = __webpack_require__(/*! three-orbit-controls */ "./node_modules/three-orbit-controls/index.js")(__webpack_require__(/*! three */ "./node_modules/three/build/three.module.js"));
@@ -428,18 +440,17 @@ function createMaterial(opts) {
     return material;
 }
 
-function withBarycentricCoordinates(geometry) {
+function withBarycentricCoordinates(buffer) {
     var flipEveryOther = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
-    var buffer = new _three.BufferGeometry();
-    buffer.fromGeometry(geometry);
+    // let buffer = new BufferGeometry();
+    // buffer.fromGeometry(geometry);
 
     if (buffer.getIndex() !== null) {
         buffer = buffer.toNonIndexed();
     }
 
-    buffer.addAttribute("barycentric", (0, _barycentric2.default)(buffer, flipEveryOther));
-    buffer.addAttribute("refPoint", (0, _refPoint2.default)(buffer, flipEveryOther));
+    (0, _createSketchAtrritbutes2.default)(buffer);
 
     return buffer;
 }
@@ -447,7 +458,10 @@ function withBarycentricCoordinates(geometry) {
 function createBox(width, height, depth) {
     var resolution = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
 
-    return withBarycentricCoordinates(new _three.CubeGeometry(width, height, depth, resolution, resolution, resolution), true);
+    var buffer = new _three.BufferGeometry();
+    buffer.fromGeometry(new _three.CubeGeometry(width, height, depth, resolution, resolution, resolution));
+
+    return withBarycentricCoordinates(buffer, true);
 }
 
 var cubeMat = createMaterial({
@@ -461,13 +475,16 @@ var cube2Mat = createMaterial({
 });
 var groundMat = createMaterial({
     color: 0xbbbbbf,
-    scale: 0.08
+    scale: 0.01
 });
 var icoMat = createMaterial({
     color: 0x888888,
     scale: 0.5,
     flipEveryOther: false
 });
+
+var sizeMin = Infinity,
+    sizeMax = -Infinity;
 
 function createScene() {
     camera = new _three.PerspectiveCamera();
@@ -497,57 +514,58 @@ function createScene() {
 
     scene.add(light);
 
-    var icoGeometry = withBarycentricCoordinates(new _three.IcosahedronGeometry(2, 2), false);
-    var icoMesh = new _three.Mesh(icoGeometry, icoMat);
-    icoMesh.position.x = 2;
-    icoMesh.position.z = -5;
-    icoMesh.position.y = 1.5;
-    icoMesh.castShadow = true;
-    icoMesh.receiveShadow = true;
-
-    scene.add(icoMesh);
-
-    var cubeGeometry = createBox(3, 4, 3);
-    var cubeMesh = new _three.Mesh(cubeGeometry, cubeMat);
-    cubeMesh.position.x = 1;
-    cubeMesh.position.y = 2;
-    cubeMesh.position.z = 1;
-    cubeMesh.castShadow = true;
-    cubeMesh.receiveShadow = true;
-
-    scene.add(cubeMesh);
-
-    var cube3Mesh = new _three.Mesh(cubeGeometry, cubeMat);
-    cube3Mesh.position.x = 1;
-    cube3Mesh.position.y = 6;
-    cube3Mesh.position.z = 1;
-    cube3Mesh.rotation.y = TAU / 8;
-    cube3Mesh.castShadow = true;
-    cube3Mesh.receiveShadow = true;
-
-    scene.add(cube3Mesh);
-
-    var cube2Geometry = createBox(5, 3, 3);
-
-    var cube2Mesh = new _three.Mesh(cube2Geometry, cube2Mat);
-    cube2Mesh.position.x = -3.5;
-    cube2Mesh.position.y = 1.5;
-    cube2Mesh.position.z = -2;
-    cube2Mesh.castShadow = true;
-    cube2Mesh.receiveShadow = true;
-
-    scene.add(cube2Mesh);
-
-    var cube4Mesh = new _three.Mesh(cube2Geometry, cube2Mat);
-    cube4Mesh.position.x = -3.5;
-    cube4Mesh.position.y = 1.5;
-    cube4Mesh.position.z = 5;
-    cube4Mesh.rotation.y = TAU / 32;
-    cube4Mesh.castShadow = true;
-    cube4Mesh.receiveShadow = true;
-
-    scene.add(cube4Mesh);
-
+    // const icoGeometry = withBarycentricCoordinates(new IcosahedronGeometry(2, 2), false);
+    // const icoMesh = new Mesh( icoGeometry, icoMat );
+    // icoMesh.position.x = 2;
+    // icoMesh.position.z = -5;
+    // icoMesh.position.y = 1.5;
+    // icoMesh.castShadow = true;
+    // icoMesh.receiveShadow = true;
+    //
+    // scene.add(icoMesh);
+    //
+    // const cubeGeometry = createBox(3, 4, 3);
+    // const cubeMesh = new Mesh(cubeGeometry, cubeMat);
+    // cubeMesh.position.x = 1;
+    // cubeMesh.position.y = 2;
+    // cubeMesh.position.z = 1;
+    // cubeMesh.castShadow = true;
+    // cubeMesh.receiveShadow = true;
+    //
+    // scene.add(cubeMesh);
+    //
+    // const cube3Mesh = new Mesh(cubeGeometry, cubeMat);
+    // cube3Mesh.position.x = 1;
+    // cube3Mesh.position.y = 6;
+    // cube3Mesh.position.z = 1;
+    // cube3Mesh.rotation.y = TAU/8;
+    // cube3Mesh.castShadow = true;
+    // cube3Mesh.receiveShadow = true;
+    //
+    // scene.add(cube3Mesh);
+    //
+    // const cube2Geometry = createBox(5, 3, 3);
+    //
+    // const cube2Mesh = new Mesh(cube2Geometry, cube2Mat);
+    // cube2Mesh.position.x = -3.5;
+    // cube2Mesh.position.y = 1.5;
+    // cube2Mesh.position.z = -2;
+    // cube2Mesh.castShadow = true;
+    // cube2Mesh.receiveShadow = true;
+    //
+    // scene.add(cube2Mesh);
+    //
+    //
+    // const cube4Mesh = new Mesh(cube2Geometry, cube2Mat);
+    // cube4Mesh.position.x = -3.5;
+    // cube4Mesh.position.y = 1.5;
+    // cube4Mesh.position.z = 5;
+    // cube4Mesh.rotation.y = TAU/32;
+    // cube4Mesh.castShadow = true;
+    // cube4Mesh.receiveShadow = true;
+    //
+    // scene.add(cube4Mesh);
+    //
     var ground = createBox(40, 1, 40, 8);
     var groundMesh = new _three.Mesh(ground, groundMat);
     groundMesh.position.y = -0.5;
@@ -556,12 +574,61 @@ function createScene() {
 
     scene.add(groundMesh);
 
+    var loader = new _threeGltfLoader2.default();
+    loader.load("park-gltf.glb", function (gltf) {
+        var gltFScene = gltf.scene;
+
+
+        gltFScene.traverse(function (child) {
+
+            try {
+                if (child.isMesh) {
+
+                    var position = new _three.Vector3(0, 0, 0);
+                    var quaternion = new _three.Quaternion();
+                    var scale = new _three.Vector3(0, 0, 0);
+
+                    child.updateMatrixWorld(true);
+                    child.matrixWorld.decompose(position, quaternion, scale);
+
+                    var newGeom = withBarycentricCoordinates(child.geometry, false);
+
+                    var median = (0, _findMedianFaceSize2.default)(newGeom);
+
+                    sizeMin = Math.min(median, sizeMin);
+                    sizeMax = Math.max(median, sizeMax);
+
+                    console.log("face size", median, "min = ", sizeMin, "max=", sizeMax);
+
+                    var mesh = new _three.Mesh(newGeom, createMaterial({
+                        color: 0xbbbbbf,
+                        scale: median > 1 ? median * 0.004 : Math.sqrt(median) * 0.7
+                    }));
+                    mesh.position.copy(position);
+                    mesh.quaternion.copy(quaternion);
+                    mesh.scale.copy(scale);
+
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.matrixAutoUpdate = true;
+
+                    scene.add(mesh);
+                }
+            } catch (e) {
+                console.error("Error traversing", e);
+            }
+        });
+
+        //scene.add( gltFScene);
+    });
+
     // camera
     camera.position.set(-3, 4, -10);
     camera.lookAt(new _three.Vector3(0, 0, 0));
 
     // const shadowHelper = new CameraHelper(light.shadow.camera);
     // scene.add(shadowHelper);
+
 }
 
 createScene();
@@ -571,7 +638,7 @@ var renderer = new _three.WebGLRenderer({
 });
 
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = _three.PCFSoftShadowMap; // default THREE.PCFShadowMap
+renderer.shadowMap.type = _three.BasicShadowMap; // default THREE.PCFShadowMap
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(new _three.Color(0xf0f0f0));
 
@@ -730,6 +797,7 @@ exports.default = function (geometry) {
     var vSecondary = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : LEFT;
 
     var positions = geometry.attributes.position.array;
+    var normals = geometry.attributes.normal.array;
 
     // the primary plane lies in the direction of the primary vector, safely outside of the scene
     var primaryPlane = new _three.Plane();
@@ -747,9 +815,6 @@ exports.default = function (geometry) {
 
     var flip = false;
     for (var i = 0, j = 0; i < positions.length; i += 9, j += 12) {
-
-        // an edge is all points in an triangle where one of the barycentric components is 1
-        var edges = [null, null, null];
 
         // if (i === 99)
         // {
@@ -889,6 +954,306 @@ var vPoint0 = new _three.Vector3(0, 0, 0);
 var vPoint1 = new _three.Vector3(0, 0, 0);
 var vTmp = new _three.Vector3(0, 0, 0);
 
+var edges = [null, null, null];
+
+/***/ }),
+
+/***/ "./src/util/createSketchAtrritbutes.js":
+/*!*********************************************!*\
+  !*** ./src/util/createSketchAtrritbutes.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.LEFT = exports.DOWN = undefined;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.default = function (geometry) {
+    var vPrimary = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DOWN;
+    var vSecondary = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : LEFT;
+
+    var positions = geometry.attributes.position.array;
+    var normals = geometry.attributes.normal.array;
+
+    // the primary plane lies in the direction of the primary vector, safely outside of the scene
+    var primaryPlane = new _three.Plane();
+    primaryPlane.setFromNormalAndCoplanarPoint(vPrimary, vPrimary.clone().multiplyScalar(1000));
+
+    // the primary plane lies in the direction of the primary vector, safely outside of the scene
+    var secondaryPlane = new _three.Plane();
+    secondaryPlane.setFromNormalAndCoplanarPoint(vSecondary, vSecondary.clone().multiplyScalar(1000));
+
+    // Build new attribute storing barycentric coordinates
+    // for each vertex
+    var barycentric = new _three.BufferAttribute(new Float32Array(positions.length * 4 / 3), 4);
+    var refPoint = new _three.BufferAttribute(new Float32Array(positions.length), 3);
+
+    var baryArray = barycentric.array;
+    var rpArray = refPoint.array;
+
+    var length = positions.length;
+    var last = positions.length - 9;
+
+    var prevFaceWasCoplanar = false;
+
+    for (var i = 0, j = 0; i < length; i += 9, j += 12) {
+        for (var k = 0; k < 3; k++) {
+            var _EDGE_INDEXES$k = _slicedToArray(EDGE_INDEXES[k], 3),
+                idx0 = _EDGE_INDEXES$k[0],
+                idx1 = _EDGE_INDEXES$k[1],
+                idx2 = _EDGE_INDEXES$k[2];
+
+            vPoint0.x = positions[i + idx0];
+            vPoint0.y = positions[i + idx0 + 1];
+            vPoint0.z = positions[i + idx0 + 2];
+
+            vPoint1.x = positions[i + idx1];
+            vPoint1.y = positions[i + idx1 + 1];
+            vPoint1.z = positions[i + idx1 + 2];
+
+            edges[k] = {
+                other: idx2,
+                delta: Math.abs(primaryPlane.distanceToPoint(vPoint0) - primaryPlane.distanceToPoint(vPoint1)),
+                start: vPoint0.clone(),
+                end: vPoint1.clone(),
+                vector: vPoint1.clone().sub(vPoint0)
+            };
+        }
+
+        var primaryEdge = void 0,
+            secondaryEdge = void 0,
+            tertiaryEdge = void 0;
+        if (edges[0].delta === edges[1].delta && edges[0].delta === edges[2].delta) {
+            var aOrthogonalToB = edges[0].vector.dot(edges[1].vector) === 0;
+            var bOrthogonalToC = edges[1].vector.dot(edges[2].vector) === 0;
+            var cOrthogonalToA = edges[2].vector.dot(edges[0].vector) === 0;
+
+            if (aOrthogonalToB) {
+                var deltaA = Math.abs(secondaryPlane.distanceToPoint(edges[0].start) - secondaryPlane.distanceToPoint(edges[0].end));
+                var deltaB = Math.abs(secondaryPlane.distanceToPoint(edges[1].start) - secondaryPlane.distanceToPoint(edges[1].end));
+
+                if (deltaA < deltaB) {
+                    primaryEdge = 0;
+                    secondaryEdge = 3;
+                    tertiaryEdge = 6;
+                } else {
+                    primaryEdge = 3;
+                    secondaryEdge = 0;
+                    tertiaryEdge = 6;
+                }
+            } else if (bOrthogonalToC) {
+                var _deltaB = Math.abs(secondaryPlane.distanceToPoint(edges[1].start) - secondaryPlane.distanceToPoint(edges[1].end));
+                var deltaC = Math.abs(secondaryPlane.distanceToPoint(edges[2].start) - secondaryPlane.distanceToPoint(edges[2].end));
+
+                if (_deltaB < deltaC) {
+                    primaryEdge = 3;
+                    secondaryEdge = 6;
+                    tertiaryEdge = 0;
+                } else {
+                    primaryEdge = 6;
+                    secondaryEdge = 3;
+                    tertiaryEdge = 0;
+                }
+            } else if (cOrthogonalToA) {
+                var _deltaC = Math.abs(secondaryPlane.distanceToPoint(edges[2].start) - secondaryPlane.distanceToPoint(edges[2].end));
+                var _deltaA = Math.abs(secondaryPlane.distanceToPoint(edges[0].start) - secondaryPlane.distanceToPoint(edges[0].end));
+
+                if (_deltaC < _deltaA) {
+                    primaryEdge = 6;
+                    secondaryEdge = 0;
+                    tertiaryEdge = 3;
+                } else {
+                    primaryEdge = 0;
+                    secondaryEdge = 6;
+                    tertiaryEdge = 3;
+                }
+            }
+        } else {
+            edges.sort(sortByDeltaAscending);
+
+            primaryEdge = edges[0].other;
+
+            if (edges[0].vector.dot(edges[1].vector) === 0) {
+                secondaryEdge = edges[2].other;
+                tertiaryEdge = edges[1].other;
+            } else {
+                secondaryEdge = edges[1].other;
+                tertiaryEdge = edges[2].other;
+            }
+        }
+
+        var nextFaceIsCoplanar = false;
+        if (i < last) {
+            vNormalA.set(normals[i], normals[i + 1], normals[i + 2]);
+            vNormalB.set(normals[i + 9], normals[i + 10], normals[i + 11]);
+
+            nextFaceIsCoplanar = vNormalA.dot(vNormalB) >= 0.9999;
+        }
+
+        //console.log({primaryEdge, secondaryEdge, tertiaryEdge});
+
+        baryArray[j] = primaryEdge === 0 ? 1 : 0;
+        baryArray[j + 1] = primaryEdge === 3 ? 1 : 0;
+        baryArray[j + 2] = primaryEdge === 6 ? 1 : 0;
+
+        baryArray[j + 4] = secondaryEdge === 0 ? 1 : 0;
+        baryArray[j + 5] = secondaryEdge === 3 ? 1 : 0;
+        baryArray[j + 6] = secondaryEdge === 6 ? 1 : 0;
+
+        baryArray[j + 8] = tertiaryEdge === 0 ? 1 : 0;
+        baryArray[j + 9] = tertiaryEdge === 3 ? 1 : 0;
+        baryArray[j + 10] = tertiaryEdge === 6 ? 1 : 0;
+
+        baryArray[j + 3] = prevFaceWasCoplanar ? 1 : 0;
+        baryArray[j + 7] = prevFaceWasCoplanar ? 1 : 0;
+        baryArray[j + 11] = prevFaceWasCoplanar ? 1 : 0;
+
+        if (prevFaceWasCoplanar) {
+            rpArray[i] = rpArray[i - 9];
+            rpArray[i + 1] = rpArray[i - 8];
+            rpArray[i + 2] = rpArray[i - 7];
+
+            rpArray[i + 3] = rpArray[i - 6];
+            rpArray[i + 4] = rpArray[i - 5];
+            rpArray[i + 5] = rpArray[i - 4];
+
+            rpArray[i + 6] = rpArray[i - 3];
+            rpArray[i + 7] = rpArray[i - 2];
+            rpArray[i + 8] = rpArray[i - 1];
+        } else {
+            /// calculate distance reference points for each face
+            var center = void 0;
+            if (nextFaceIsCoplanar) {
+                var centerA = getCenter(positions, i).clone();
+                var centerB = getCenter(positions, i + 9);
+
+                center = centerA.add(centerB).multiplyScalar(0.5);
+            } else {
+                center = getCenter(positions, i);
+            }
+
+            rpArray[i] = center.x;
+            rpArray[i + 1] = center.y;
+            rpArray[i + 2] = center.z;
+
+            rpArray[i + 3] = center.x;
+            rpArray[i + 4] = center.y;
+            rpArray[i + 5] = center.z;
+
+            rpArray[i + 6] = center.x;
+            rpArray[i + 7] = center.y;
+            rpArray[i + 8] = center.z;
+        }
+
+        prevFaceWasCoplanar = nextFaceIsCoplanar;
+    }
+    //console.log("BARYCENTRIC", barycentric);
+
+    geometry.addAttribute("barycentric", barycentric);
+    geometry.addAttribute("refPoint", refPoint);
+};
+
+var _three = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
+var TAU = Math.PI * 2;
+
+var vCenter = new _three.Vector3(0, 0, 0);
+
+function getCenter(positions, index) {
+    vCenter.x = (positions[index] + positions[index + 3] + positions[index + 6]) / 3;
+
+    vCenter.y = (positions[index + 1] + positions[index + 4] + positions[index + 7]) / 3;
+
+    vCenter.z = (positions[index + 2] + positions[index + 5] + positions[index + 8]) / 3;
+
+    return vCenter;
+}
+
+function sortByDeltaAscending(a, b) {
+    return a.delta - b.delta;
+}
+
+var DOWN = exports.DOWN = new _three.Vector3(0, -1, 0);
+var LEFT = exports.LEFT = new _three.Vector3(-1, 0, 0);
+
+var EDGE_INDEXES = [[0, 3, 6], [3, 6, 0], [6, 0, 3]];
+
+var vPoint0 = new _three.Vector3(0, 0, 0);
+var vPoint1 = new _three.Vector3(0, 0, 0);
+var vNormalA = new _three.Vector3(0, 0, 0);
+var vNormalB = new _three.Vector3(0, 0, 0);
+
+var edges = [null, null, null];
+
+/***/ }),
+
+/***/ "./src/util/findMedianFaceSize.js":
+/*!****************************************!*\
+  !*** ./src/util/findMedianFaceSize.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function (geometry) {
+    var positions = geometry.attributes.position.array;
+
+    if (geometry.getIndex() != null) {
+        throw new Error("Only works on non-indexed geometry");
+    }
+
+    var length = positions.length;
+
+    var numFaces = length / 9;
+    var areas = new Array(numFaces);
+
+    for (var i = 0, j = 0; i < length; i += 9, j++) {
+        var x1 = positions[i + 3] - positions[i];
+        var x2 = positions[i + 4] - positions[i + 1];
+        var x3 = positions[i + 5] - positions[i + 2];
+        var y1 = positions[i + 6] - positions[i];
+        var y2 = positions[i + 7] - positions[i + 1];
+        var y3 = positions[i + 8] - positions[i + 2];
+
+        var t0 = x2 * y3 - x3 * y2;
+        var t1 = x3 * y1 - x1 * y3;
+        var t2 = x1 * y2 - x2 * y1;
+        areas[j] = Math.sqrt(t0 * t0 + t1 * t1 + t2 * t2) / 2;
+    }
+
+    // S=12(x2⋅y3−x3⋅y2)2+(x3⋅y1−x1⋅y3)2+(x1⋅y2−x2⋅y1)2−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−−√
+
+    areas.sort(sortAscending);
+
+    var half = numFaces / 2 | 0;
+
+    // even number of values?
+    if ((numFaces & 1) === 0) {
+        return (areas[half - 1] + areas[half]) / 2;
+    } else {
+        return areas[half];
+    }
+};
+
+var TAU = Math.PI * 2;
+
+function sortAscending(a, b) {
+    return a - b;
+}
+
 /***/ }),
 
 /***/ "./src/util/refPoint.js":
@@ -914,46 +1279,9 @@ exports.default = function (geometry) {
     // for each vertex
     var refPoint = new _three.BufferAttribute(new Float32Array(positions.length), 3);
 
-    var out = refPoint.array;
+    var rpArray = refPoint.array;
 
-    for (var i = 0; i < positions.length; i += 9) {
-        var center = void 0;
-        if (alternatingQuads) {
-            var centerA = getCenter(positions, i).clone();
-            var centerB = getCenter(positions, i + 9);
-
-            center = centerA.add(centerB).multiplyScalar(0.5);
-        } else {
-            center = getCenter(positions, i);
-        }
-
-        out[i] = center.x;
-        out[i + 1] = center.y;
-        out[i + 2] = center.z;
-
-        out[i + 3] = center.x;
-        out[i + 4] = center.y;
-        out[i + 5] = center.z;
-
-        out[i + 6] = center.x;
-        out[i + 7] = center.y;
-        out[i + 8] = center.z;
-
-        if (alternatingQuads) {
-            i = i + 9;
-            out[i] = center.x;
-            out[i + 1] = center.y;
-            out[i + 2] = center.z;
-
-            out[i + 3] = center.x;
-            out[i + 4] = center.y;
-            out[i + 5] = center.z;
-
-            out[i + 6] = center.x;
-            out[i + 7] = center.y;
-            out[i + 8] = center.z;
-        }
-    }
+    for (var i = 0; i < positions.length; i += 9) {}
     //console.log("BARYCENTRIC", refPoint);
 
     return refPoint;
@@ -975,19 +1303,7 @@ function getCenter(positions, index) {
     return vCenter;
 }
 
-/***/ }),
-
-/***/ 0:
-/*!****************************!*\
-  !*** multi ./src/index.js ***!
-  \****************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(/*! ./src/index.js */"./src/index.js");
-
-
 /***/ })
 
 /******/ });
-//# sourceMappingURL=main.857a04b5ea1f2de0ed15.js.map
+//# sourceMappingURL=main.17d337f7ac599b20e8e7.js.map
